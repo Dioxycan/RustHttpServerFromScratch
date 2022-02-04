@@ -3,7 +3,6 @@ use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct HttpRequest{
-    pub data:String,
     pub method:HttpMethod,
     pub uri:String,
     pub version:HttpVersion,
@@ -20,20 +19,16 @@ impl From<String> for HttpRequest{
         for (i,line) in s.lines().enumerate(){
             if i == 0 {
                 let word : Vec<&str>= line.split(" ").collect();
-                method = HttpMethod::new(word[0]);
+                method = HttpMethod::from(word[0]);
                 uri = String::from(word[1]);
                 version = HttpVersion::from(word[2]);
             }else if line == ""{
                 break;
-            }
-            else{
+            }else{
                 let mut index :usize=line.len();
                 let mut i :usize=0;
                 let bytes = line.as_bytes();
-                loop{
-                    if i+1 == index {
-                        break;
-                    }
+                while i<index{
                     if bytes[i] == b':'{
                         index = i;
                         break;
@@ -46,7 +41,6 @@ impl From<String> for HttpRequest{
         let mut body = s.find("\r\n\r\n");
         body=Some(body.unwrap()+8);
         HttpRequest{
-            data:s,
             method,
             uri,
             version,

@@ -20,8 +20,8 @@ impl HttpVersion{
 impl From<&str> for HttpVersion{
     fn from(s:&str)->Self{
         match s{
-            "HTTP/1.1" => HttpVersion::V1_1,
-            "HTTP/2.0" => HttpVersion::V2_0,
+            V1_1STR => HttpVersion::V1_1,
+            V2_0STR => HttpVersion::V2_0,
             _ =>{
                 HttpVersion::V
             }
