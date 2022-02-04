@@ -39,7 +39,10 @@ impl From<String> for HttpRequest{
             }
         }
         let mut body = s.find("\r\n\r\n");
-        body=Some(body.unwrap()+8);
+        match body {
+            Some(i)=>{body=Some(i+8);},
+            None=>{body=None;}
+        }
         HttpRequest{
             method,
             uri,

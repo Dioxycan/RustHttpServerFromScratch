@@ -1,153 +1,50 @@
-use std::net::{TcpListener,TcpStream};
-use std::io::{Read,self,Write};
-use std::io::prelude::*;
+
+use std::io;
+
 use std::result::Result;
-use std::fs;
-use std::str;
 use crate::http::{
     request::HttpRequest,
     response::HttpResponse,
-    types::status::HTTP_404,
-    types::method::HttpMethod,
 };
-
-const NOT_FOUND:&str="<h1>404 Not Found</h1>";
-const NOT_FOUND_LEN:&str ="22";
+use crate::server::server::{
+    Server,
+    Router,
+    Api,
+    ApiMethod,
+    ApiView
+};
 mod http;
+mod server;
 fn main() -> Result<(),io::Error>{
-    
+    fn get_view(req:&HttpRequest,res: &mut HttpResponse){
+        println!("its working lol");
+        println!("{:#?}",req);
+        let body = "hello world";
+        res.add_header("Content-Length".to_string(), body.len().to_string());
+        res.body=Some(body.as_bytes().to_vec());
+    }
+    //let a:Box::<View<'a>> = Box::new(get_view);
     let r = Router{
-        statics:"dist".to_string()
+        statics:"dist".to_string(),
+        api:Some(vec!(Api{
+            url:String::from("/api"),
+            views:vec!(ApiView{
+                api_methods:ApiMethod{
+                    CREATE:None,
+                    DELETE:None,
+                    PUT:None,
+                    OPTION:None,
+                    POST:None,
+                    GET:Some(get_view)
+                },
+                url:String::from("/")
+            })
+
+        })),
     };
+  
     let server = Server::build("127.0.0.1:9000", r)?;
     server.run();
     Ok(())
 
 }
-
-struct Router{
-    statics:String
-}
-impl<'a> Router {
-    fn route(&self,req:HttpRequest)->Result<HttpResponse<'a>,io::Error>{
-        let mut res = HttpResponse::default();
-        match req.headers.get("Sec-Fetch-Dest") {
-            Some(s)=>{
-                if s.trim() != "empty"{
-                    match req.headers.get("Sec-Fetch-Mode"){
-                        Some(v)=>{
-                            println!("{}",v);
-                            print!("{}\r\n",req.uri);
-                            match v.as_str().trim(){
-                                "no-cors"=>{
-                                    let mut url = String::new();
-                                    if req.uri.starts_with("/."){
-                                        url = format!("{}/{}",self.statics,&req.uri[2..]);
-                                    }else{
-                                        url = format!("{}/{}",self.statics,&req.uri[1..]);
-                                    }
-                                    
-                                    let mut types =String::new();
-                                    match req.headers.get("Sec-Fetch-Mode"){
-                                        Some(vv)=>{
-                                            match vv[..].trim(){
-                                                "image"=>{
-                                                    types= format!("{}/{}","image","ico");
-                                                },
-                                                "style"=>{
-                                                    types= format!("{}/{}","text","css");
-                                                }
-                                                _=>{}
-                                            }
-                                        }
-                                        None=>{}
-                                    }
-                                    let f= fs::read(url)?;
-                                    res.add_header("Content-Type".to_string(),types);
-                                    res.add_header("Content-Length".to_string(),f.len().to_string());
-                                    res.body=Some(f);
-                                },
-                                "cors"=>{
-                                    let mut url = String::new();
-                                    if req.uri.starts_with("/."){
-                                        url = format!("{}/{}",self.statics,&req.uri[2..]);
-                                    }else{
-                                        url = format!("{}/{}",self.statics,&req.uri[1..]);
-                                    }
-                                    print!("{}\r\n",url);
-                                    let f= fs::read(url)?;
-                                    res.add_header("Content-Type".to_string(), "text/javascript".to_string());
-                                    res.add_header("Content-Length".to_string(),f.len().to_string());
-                                    res.body=Some(f);
-                                },
-                                "navigate"=>{
-                                    let mut url = String::new();
-                                        url = format!("{}/{}",self.statics,"index.html");
-                                        print!("{}\r\n",url);
-                                        let f = fs::read(url)?; 
-                                        res.add_header("Content-Type".to_string(), "text/html".to_string());
-                                        res.add_header("Content-Length".to_string(),f.len().to_string());
-                                        res.body=Some(f);
-            
-                                    
-                                },
-                                _=>{
-                                    res.status = HTTP_404;
-                                    res.add_header("Content-Type".to_string(), "text/html".to_string());
-                                    res.add_header("Content-Length".to_string(), NOT_FOUND_LEN.to_string());
-                                    res.body = Some(NOT_FOUND.as_bytes().to_vec());
-                                }
-            
-                            }
-                        }
-                            None=>{}
-                    }
-                }else{
-                    
-                }
-            },
-            None=>{}
-        }
-        println!("dfdfd");
-        Ok(res)
-    
-    }
-
-}
-struct Server{
-    _sock_addr:String,
-    listener:TcpListener,
-    router:Router,
-}
-impl Server{
-    fn build(sock_addr:&str,router:Router)->Result<Server,io::Error>{
-        let listener = TcpListener::bind(sock_addr)?;
-        Ok(Server{
-            _sock_addr:sock_addr.to_string(),
-            listener,
-            router
-        })
-    }
-    fn run(&self){
-        for stream in self.listener.incoming(){
-            let stream = stream.unwrap();
-            self.handle_stream(stream).unwrap();
-        }
-        
-    }
-    fn handle_stream(&self,mut stream:TcpStream)->Result<(),io::Error>{
-        let mut buffer = [0; 1024];
-        stream.read(&mut buffer)?;
-        let r = String::from_utf8(buffer.to_vec()).unwrap();
-        println!("{}",r);
-        let res = self.router.route(HttpRequest::from(r))?;
-        stream.write(&res.send()[..])?;
-        stream.flush()?;
-        Ok(())
-    }
-
-}
-
-
-
-
