@@ -19,8 +19,31 @@ fn main() -> Result<(),io::Error>{
     fn get_view(req:&HttpRequest,res: &mut HttpResponse){
         println!("its working lol");
         println!("{:#?}",req);
-        let body = "hello world";
+        let body = r#"{
+            "glossary": {
+                "title": "example glossary",
+                "GlossDiv": {
+                    "title": "S",
+                    "GlossList": {
+                        "GlossEntry": {
+                            "ID": "SGML",
+                            "SortAs": "SGML",
+                            "GlossTerm": "Standard Generalized Markup Language",
+                            "Acronym": "SGML",
+                            "Abbrev": "ISO 8879:1986",
+                            "GlossDef": {
+                                "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                                "GlossSeeAlso": ["GML", "XML"]
+                            },
+                            "GlossSee": "markup"
+                        }
+                    }
+                }
+            }
+        }"#;
         res.add_header("Content-Length".to_string(), body.len().to_string());
+        res.add_header("Content-Type".to_string(), "application/json".to_string());
+
         res.body=Some(body.as_bytes().to_vec());
     }
     //let a:Box::<View<'a>> = Box::new(get_view);
