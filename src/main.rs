@@ -7,15 +7,21 @@ use crate::http::{
     response::HttpResponse,
 };
 use crate::server::server::{
-    Server,
+    Server
+};
+use crate::router::router::{
     Router,
     Api,
     ApiMethod,
-    ApiView
+    ApiView,
+
 };
+mod router;
 mod http;
 mod server;
+
 fn main() -> Result<(),io::Error>{
+
     fn get_view(req:&HttpRequest,res: &mut HttpResponse){
         println!("its working lol");
         println!("{:#?}",req);
