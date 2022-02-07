@@ -16,6 +16,7 @@ use crate::router::router::{
     ApiView,
 
 };
+mod client;
 mod router;
 mod http;
 mod server;

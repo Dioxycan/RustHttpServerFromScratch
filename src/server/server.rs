@@ -1,4 +1,5 @@
-use std::net::{TcpListener,TcpStream};
+use std::collections::HashMap;
+use std::net::{TcpListener,TcpStream,IpAddr, Ipv4Addr};
 use std::io::prelude::*;
 use std::io;
 use crate::http;
@@ -9,12 +10,26 @@ Router
 use http::{
     request::HttpRequest,
 };
+use std::time::{SystemTime,Duration};
 
+#[derive(Debug)]
+pub struct LoadBalancer{
+    client:Option<HashMap<Ipv4Addr,SystemTime>>
+}
+impl LoadBalancer{
+    pub fn new(addr:Ipv4Addr)->LoadBalancer{
+        let mut temp = HashMap::new();
+        temp.insert(addr, SystemTime::now());
+        LoadBalancer{
+            client:Some(temp),
+        }
+    }
+}
 pub struct Server{
     pub _sock_addr:String,
     pub listener:TcpListener,
     pub router:Router,
-
+    pub loadBalancers:Option<Vec<LoadBalancer>>
 }
 impl<'a> Server{
     pub fn build(sock_addr:&str,router:Router)->Result<Server,io::Error>{
@@ -23,6 +38,7 @@ impl<'a> Server{
             _sock_addr:sock_addr.to_string(),
             listener,
             router,
+            loadBalancers:None,
         })
     }
     pub fn run(&self){
