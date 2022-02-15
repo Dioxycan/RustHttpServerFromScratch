@@ -1,2 +1,2 @@
-# Some Thing experimental
+# Something experimental
 
