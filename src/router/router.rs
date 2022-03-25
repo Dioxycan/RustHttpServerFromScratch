@@ -39,6 +39,7 @@ impl<'a> Router {
                 match v.as_str().trim(){
                     "no-cors"=>{
                         let mut url = String::new();
+                        let mut f:Vec<u8>=vec!(); 
                         if req.uri.starts_with("/."){
                             url = format!("{}/{}",self.statics,&req.uri[2..]);
                         }else{
@@ -50,28 +51,30 @@ impl<'a> Router {
                             Some(vv)=>{
                                 match vv[..].trim(){
                                     "image"=>{
-                                        types= format!("{}/{}","image","ico");
+                                        
                                     },
                                     "style"=>{
-                                        types= format!("{}/{}","text","css");
+                                        let f= fs::read(url)?;
                                     }
                                     _=>{}
                                 }
                             }
                             None=>{}
                         }
-                        let f= fs::read(url)?;
                         res.add_header("Content-Type".to_string(),types);
                         res.add_header("Content-Length".to_string(),f.len().to_string());
                         res.body=Some(f);
                     },
                     "cors"=>{
                         let mut url = String::new();
+                        println!("{}",req.uri);
                         if req.uri.starts_with("/."){
                             url = format!("{}/{}",self.statics,&req.uri[2..]);
                         }else{
                             url = format!("{}/{}",self.statics,&req.uri[1..]);
                         }
+                        res.add_header("Access-Control-Allow-Origin".to_string(),"*".to_string());
+                        res.add_header("Access-Control-Allow-Headers".to_string(),"*".to_string());
                         print!("{}\r\n",url);
                         let f= fs::read(url)?;
                         res.add_header("Content-Type".to_string(), "text/javascript".to_string());
@@ -80,12 +83,19 @@ impl<'a> Router {
                     },
                     "navigate"=>{
                         let mut url = String::new();
-                            url = format!("{}/{}",self.statics,"index.html");
+                        if(req.uri =="/"){
+                            url = format!("{}/index.html",self.statics);
+                        }else{
+                            url = format!("{}{}.html",self.statics,req.uri);
                             print!("{}\r\n",url);
-                            let f = fs::read(url)?; 
-                            res.add_header("Content-Type".to_string(), "text/html".to_string());
-                            res.add_header("Content-Length".to_string(),f.len().to_string());
-                            res.body=Some(f);
+                          
+                        }
+                        let f = fs::read(url)?; 
+                        res.add_header("Access-Control-Allow-Origin".to_string(),"*".to_string());
+                        res.add_header("Access-Control-Allow-Headers".to_string(),"*".to_string());
+                        res.add_header("Content-Type".to_string(), "text/html".to_string());
+                        res.add_header("Content-Length".to_string(),f.len().to_string());
+                        res.body=Some(f);
 
                         
                     },

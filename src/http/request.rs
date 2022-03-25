@@ -19,9 +19,15 @@ impl From<String> for HttpRequest{
         for (i,line) in s.lines().enumerate(){
             if i == 0 {
                 let word : Vec<&str>= line.split(" ").collect();
+                if word.len() == 1{
+                    method = HttpMethod::GET;
+                    uri = "".to_string();
+                    version = HttpVersion::V1_1;
+                }else{
                 method = HttpMethod::from(word[0]);
                 uri = String::from(word[1]);
                 version = HttpVersion::from(word[2]);
+                }
             }else if line == ""{
                 break;
             }else{

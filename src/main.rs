@@ -29,7 +29,6 @@ extern crate num_cpus;
 fn main() -> Result<(),io::Error>{
 
     fn get_view(req:&HttpRequest,res: &mut HttpResponse){
-        println!("its working lol");
         println!("{:#?}",req);
         let body = r#"{
             "glossary": {
