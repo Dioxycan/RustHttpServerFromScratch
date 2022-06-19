@@ -1,1 +1,1 @@
-# A Tiny Experimental Web Server for rust 
+# Tiny experimental http server for rust 
